@@ -45,6 +45,20 @@ function createHeightLabel(){
 	return heightLabel;
 }
 
+function createHorizontalLabel(){
+	const horizontalLabel = new TextSprite('');
+
+	horizontalLabel.setTextColor({r: 140, g: 250, b: 140, a: 1.0});
+	horizontalLabel.setBorderColor({r: 0, g: 0, b: 0, a: 1.0});
+	horizontalLabel.setBackgroundColor({r: 0, g: 0, b: 0, a: 1.0});
+	horizontalLabel.fontsize = 16;
+	horizontalLabel.material.depthTest = false;
+	horizontalLabel.material.opacity = 1;
+	horizontalLabel.visible = false;
+
+	return horizontalLabel;
+}
+
 function createAreaLabel(){
 	const areaLabel = new TextSprite('');
 
@@ -311,6 +325,7 @@ export class Measure extends THREE.Object3D {
 
 		this.heightEdge = createHeightLine();
 		this.heightLabel = createHeightLabel();
+		this.horizontalLabel = createHorizontalLabel();
 		this.areaLabel = createAreaLabel();
 		this.circleRadiusLabel = createCircleRadiusLabel();
 		this.circleRadiusLine = createCircleRadiusLine();
@@ -321,6 +336,7 @@ export class Measure extends THREE.Object3D {
 
 		this.add(this.heightEdge);
 		this.add(this.heightLabel);
+		this.add(this.horizontalLabel);
 		this.add(this.areaLabel);
 		this.add(this.circleRadiusLabel);
 		this.add(this.circleRadiusLine);
@@ -715,6 +731,7 @@ export class Measure extends THREE.Object3D {
 			let heightEdge = this.heightEdge;
 			heightEdge.visible = this.showHeight;
 			this.heightLabel.visible = this.showHeight;
+			this.horizontalLabel.visible = this.showHeight;
 
 			if (this.showHeight) {
 				let sorted = this.points.slice().sort((a, b) => a.position.z - b.position.z);
@@ -737,26 +754,38 @@ export class Measure extends THREE.Object3D {
 				]);
 
 				heightEdge.geometry.verticesNeedUpdate = true;
-				// heightEdge.geometry.computeLineDistances();
-				// heightEdge.geometry.lineDistancesNeedUpdate = true;
 				heightEdge.geometry.computeBoundingSphere();
 				heightEdge.computeLineDistances();
-
-				// heightEdge.material.dashSize = height / 40;
-				// heightEdge.material.gapSize = height / 40;
 
 				let heightLabelPosition = start.clone().add(end).multiplyScalar(0.5);
 				this.heightLabel.position.copy(heightLabelPosition);
 
 				let suffix = "";
 				if(this.lengthUnit != null && this.lengthUnitDisplay != null){
-					height = height / this.lengthUnit.unitspermeter * this.lengthUnitDisplay.unitspermeter;  //convert to meters then to the display unit
+					height = height / this.lengthUnit.unitspermeter * this.lengthUnitDisplay.unitspermeter;
 					suffix = this.lengthUnitDisplay.code;
 				}
 
 				let txtHeight = Utils.addCommas(height.toFixed(2));
 				let msg = `${txtHeight} ${suffix}`;
 				this.heightLabel.setText(msg);
+
+				{ // horizontal distance label
+					let horizontalDist = lowPoint.distanceTo(start);
+					let horizontalLabelPosition = lowPoint.clone().add(start).multiplyScalar(0.5);
+					this.horizontalLabel.position.copy(horizontalLabelPosition);
+
+					let hDist = horizontalDist;
+					let hSuffix = "";
+					if(this.lengthUnit != null && this.lengthUnitDisplay != null){
+						hDist = hDist / this.lengthUnit.unitspermeter * this.lengthUnitDisplay.unitspermeter;
+						hSuffix = this.lengthUnitDisplay.code;
+					}
+
+					let txtHDist = Utils.addCommas(hDist.toFixed(2));
+					this.horizontalLabel.setText(`${txtHDist} ${hSuffix}`);
+					this.horizontalLabel.visible = this.showHeight && horizontalDist > 0;
+				}
 			}
 		}
 

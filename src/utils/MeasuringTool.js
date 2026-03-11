@@ -324,6 +324,15 @@ export class MeasuringTool extends EventDispatcher{
 					label.scale.set(scale, scale, scale);
 				}
 
+				// horizontal distance label
+				{
+					let hLabel = measure.horizontalLabel;
+					let distance = hLabel.position.distanceTo(camera.position);
+					let pr = Utils.projectedRadius(1, camera, distance, clientWidth, clientHeight);
+					let scale = (70 / pr);
+					hLabel.scale.set(scale, scale, scale);
+				}
+
 				{ // height edge
 					let edge = measure.heightEdge;
 
@@ -403,6 +412,7 @@ export class MeasuringTool extends EventDispatcher{
 					...measure.angleLabels, 
 					...measure.coordinateLabels,
 					measure.heightLabel,
+					measure.horizontalLabel,
 					measure.areaLabel,
 					measure.circleRadiusLabel,
 				];
